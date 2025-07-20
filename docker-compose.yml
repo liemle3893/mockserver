@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mockserver:
+    build: .
+    ports:
+      - "8080:8080"   # HTTP/WebSocket
+      - "50051:50051" # gRPC
+    environment:
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Optional: gripmock for advanced gRPC mocking
+  gripmock:
+    image: tkpd/gripmock
+    ports:
+      - "4770:4770"   # gRPC
+      - "4771:4771"   # Admin HTTP
+    volumes:
+      - ./grpc/protos:/proto:ro
+      - ./grpc/mocks:/mocks:ro
+    command: ["--stub=/mocks", "/proto/mock.proto"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4771/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  default:
+    name: mockserver-network

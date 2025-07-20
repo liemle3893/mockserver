@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package mock;
+
+option go_package = "mockserver/proto";
+
+// Simple message for unary calls
+message SimpleRequest {
+  string message = 1;
+  int32 value = 2;
+}
+
+message SimpleResponse {
+  string message = 1;
+  int64 timestamp = 2;
+}
+
+// Streaming messages
+message StreamRequest {
+  string id = 1;
+  string data = 2;
+}
+
+message StreamResponse {
+  string id = 1;
+  string data = 2;
+  int64 timestamp = 3;
+  int32 sequence = 4;
+}
+
+// Mock service with all types of gRPC calls
+service MockService {
+  // Unary RPC
+  rpc Echo(SimpleRequest) returns (SimpleResponse);
+  
+  // Server streaming RPC
+  rpc ServerStream(StreamRequest) returns (stream StreamResponse);
+  
+  // Client streaming RPC
+  rpc ClientStream(stream StreamRequest) returns (SimpleResponse);
+  
+  // Bidirectional streaming RPC
+  rpc BidiStream(stream StreamRequest) returns (stream StreamResponse);
+}
